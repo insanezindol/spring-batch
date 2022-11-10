@@ -4,12 +4,13 @@ import lombok.*;
 
 import javax.persistence.*;
 
-@Getter // getter 메소드 생성
-@Builder // 빌더를 사용할 수 있게 함
+@Getter
+@Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "member") // 테이블 명을 작성
-public class MemberEntity {
+public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,9 +22,13 @@ public class MemberEntity {
     @Column(nullable = false, length = 100)
     private String name;
 
-    public MemberEntity(String username, String name) {
+    @Column(nullable = false)
+    private int amount;
+
+    public Member(String username, String name, int amount) {
         this.username = username;
         this.name = name;
+        this.amount = amount;
     }
 
 }
