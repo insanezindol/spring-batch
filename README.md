@@ -178,19 +178,3 @@ spring:
 
 -   SQL 쿼리 로깅이 활성화되어 있어 실행되는 쿼리를 콘솔에서 확인할 수 있습니다
 -   Spring Batch 실행 로그를 통해 배치 작업의 진행 상황을 모니터링할 수 있습니다
-
-## 🤝 기여하기
-
-1. 프로젝트를 Fork합니다
-2. 새로운 기능 브랜치를 생성합니다 (`git checkout -b feature/amazing-feature`)
-3. 변경사항을 커밋합니다 (`git commit -m 'Add some amazing feature'`)
-4. 브랜치에 푸시합니다 (`git push origin feature/amazing-feature`)
-5. Pull Request를 생성합니다
-
-## 📄 라이선스
-
-이 프로젝트는 MIT 라이선스 하에 배포됩니다.
-
-## 📞 문의사항
-
-프로젝트와 관련된 질문이나 제안사항이 있으시면 Issues를 통해 연락해주세요.
