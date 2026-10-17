@@ -1,9 +1,10 @@
-version: '3'
+# 프로젝트 이름을 지정하지 않으면 디렉터리명(resources)이 사용되어 다른 프로젝트의 compose 와 충돌할 수 있다.
+name: spring-batch
+
 services:
 
   mysql:
-    image: mysql:5.7
-    platform: linux/amd64
+    image: mysql:8.4
     ports:
       - "3306:3306"
     command:
@@ -13,5 +14,9 @@ services:
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
-      MYSQL_ROOT_USER: root
       MYSQL_ROOT_PASSWORD: 123456
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p123456"]
+      interval: 5s
+      timeout: 3s
+      retries: 20

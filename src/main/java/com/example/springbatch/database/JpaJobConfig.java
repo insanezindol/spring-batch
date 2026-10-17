@@ -1,43 +1,44 @@
 package com.example.springbatch.database;
 
 import com.example.springbatch.entity.Member;
+import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.JobScope;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.database.JpaItemWriter;
-import org.springframework.batch.item.database.JpaPagingItemReader;
-import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
+import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.database.JpaItemWriter;
+import org.springframework.batch.infrastructure.item.database.JpaPagingItemReader;
+import org.springframework.batch.infrastructure.item.database.builder.JpaItemWriterBuilder;
+import org.springframework.batch.infrastructure.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
 
-import javax.persistence.EntityManagerFactory;
-import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @Configuration
 public class JpaJobConfig {
 
-    final JobBuilderFactory jobBuilderFactory;
-    final StepBuilderFactory stepBuilderFactory;
+    final JobRepository jobRepository;
+    final PlatformTransactionManager transactionManager;
     final EntityManagerFactory entityManagerFactory;
 
-    public JpaJobConfig(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory, EntityManagerFactory entityManagerFactory) {
-        this.jobBuilderFactory = jobBuilderFactory;
-        this.stepBuilderFactory = stepBuilderFactory;
+    public JpaJobConfig(JobRepository jobRepository, PlatformTransactionManager transactionManager, EntityManagerFactory entityManagerFactory) {
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
         this.entityManagerFactory = entityManagerFactory;
     }
 
     @Bean
     public Job jpaJob() {
-        Job exampleJob = jobBuilderFactory.get("jpaJob")
+        Job exampleJob = new JobBuilder("jpaJob", jobRepository)
                 .start(jpaJobStep())
                 .build();
         return exampleJob;
@@ -52,8 +53,9 @@ public class JpaJobConfig {
     @Bean
     @JobScope
     public Step jpaJobStep() {
-        return stepBuilderFactory.get("Step")
+        return new StepBuilder("Step", jobRepository)
                 .<Member, Member>chunk(10)
+                .transactionManager(transactionManager)
                 .reader(jpaReader(null))
                 .processor(jpaProcessor(null))
                 .writer(jpaWriter(null))
@@ -66,13 +68,10 @@ public class JpaJobConfig {
 
         log.info("jobParameters value : " + date);
 
-        Map<String, Object> parameterValues = new HashMap<>();
-        parameterValues.put("amount", 10000);
-
         return new JpaPagingItemReaderBuilder<Member>()
                 .pageSize(10)
-                .parameterValues(parameterValues)
-                .queryString("SELECT p FROM com.example.springbatch.entity.Member p WHERE p.amount >= :amount ORDER BY id ASC")
+                .parameterValues(Map.of("amount", 10000))
+                .queryString("SELECT p FROM com.example.springbatch.entity.Member p WHERE p.amount >= :amount ORDER BY p.pid ASC")
                 .entityManagerFactory(entityManagerFactory)
                 .name("JpaPagingItemReader")
                 .build();

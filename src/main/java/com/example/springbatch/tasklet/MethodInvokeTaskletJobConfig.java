@@ -2,38 +2,39 @@ package com.example.springbatch.tasklet;
 
 import com.example.springbatch.service.CustomService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.tasklet.MethodInvokingTaskletAdapter;
-import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @Slf4j
 @Configuration
 public class MethodInvokeTaskletJobConfig {
 
-    final JobBuilderFactory jobBuilderFactory;
-    final StepBuilderFactory stepBuilderFactory;
+    final JobRepository jobRepository;
+    final PlatformTransactionManager transactionManager;
 
-    public MethodInvokeTaskletJobConfig(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory) {
-        this.jobBuilderFactory = jobBuilderFactory;
-        this.stepBuilderFactory = stepBuilderFactory;
+    public MethodInvokeTaskletJobConfig(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
     }
 
     @Bean
     public Job methodInvokeTaskletJob() {
-        return jobBuilderFactory.get("methodInvokeTaskletJob")
+        return new JobBuilder("methodInvokeTaskletJob", jobRepository)
                 .start(methodInvokeStep())
                 .build();
     }
 
     @Bean
     public Step methodInvokeStep() {
-        return stepBuilderFactory.get("methodInvokeStep")
-                .tasklet(customMethodInvokeTasklet()).build();
+        return new StepBuilder("methodInvokeStep", jobRepository)
+                .tasklet(customMethodInvokeTasklet(), transactionManager).build();
     }
 
     @Bean
